@@ -1,0 +1,20 @@
+{
+  "name": "stale-oc-artifacts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "prFilter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@octokit/rest": "^16.18.1",
+    "axios": "^0.18.0",
+    "dotenv": "^7.0.0",
+    "minimist": "^1.2.0",
+    "openshift-client": "^3.10.8"
+  }
+}

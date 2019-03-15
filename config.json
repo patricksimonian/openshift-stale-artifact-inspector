@@ -1,0 +1,8 @@
+{
+  "app": "devhub-dev",
+  "dev": "devhub-dev",
+  "test": "devhub-test",
+  "prod": "devhub-prod",
+  "repo": "devhub-app-web",
+  "owner": "bcgov"  
+}
