@@ -35,7 +35,10 @@ const getPrNumFromDeployConfig = (configs, app) => configs.filter(item => {
 }).map(item => item.metadata.labels['env-id'].replace('pr-', '') / 1);
 
 const getArgs = (cmdArgs, file) => {
-  return {...cmdArgs, ...file};
+  const envOptions = {
+    token: process.env.OC_TOKEN,
+  }
+  return { ...envOptions, ...cmdArgs, ...file};
 };
 
 const instructions = () => {
@@ -48,6 +51,7 @@ const instructions = () => {
     prod: --prod=[prod name space] the name of your prod openshift namespace
     repo: --repo=[github repo] the repo that is tied to your openshift ocp pipeline
     owner: --owner=[github owner] the owner of the repo
+    token: --token=[oc auth token] the openshift cli authentication token
   `;
   console.log(text);
 }
@@ -77,9 +81,9 @@ const main = async () => {
 
     const options = getArgs(argv, file);
     //get deployment configs
-    const deploys = await oc.getDeploys(options.dev);
-    const prodDeploys = await oc.getDeploys(options.prod);
-    const testDeploys = await oc.getDeploys(options.test);
+    const deploys = await oc.getDeploys(options.token, options.dev);
+    const prodDeploys = await oc.getDeploys(options.token, options.prod);
+    const testDeploys = await oc.getDeploys(options.token, options.test);
   
     const {data} = deploys;
     // filter out all non devhub deployment configs

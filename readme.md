@@ -10,7 +10,7 @@ in which the development namespace gets littered with artifacts that eat resourc
 How to get started
 > requires node js 10
 1. install packages `npm install`
-2. fill in your environment variables `cp .env-example .env`
+2. fill in your environment variables `cp .env-example .env` if you want to persist an authentication token (you don't have to do this step)
 3. for app instructions run `npm start -- -h`
 4. To run app `npm start -- --app=[app-name] --dev=[dev namespace] --test=[test namespace] --prod=[prod namespace] --repo=[repo name] --owner=[owner name]
 
@@ -25,9 +25,11 @@ Alternatively you may store these credentials in a `json` file and call
   "test": "devhub-test",
   "prod": "devhub-prod",
   "repo": "devhub-app-web",
-  "owner": "bcgov"  
+  "owner": "bcgov",
+  "token": "your oc token" 
 }
 ```
+> ENSURE TO NOT ADD YOUR CONFIG FILE AS APART OF THE REPO HISTORY IF YOU ARE INCLUDING THE TOKEN
 
 `npm start -- --file=./config.json`
 
