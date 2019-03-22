@@ -70,35 +70,41 @@ const getFile = async filepath => {
 const transposeFile = async fileData => JSON.parse(await fileData);
 
 const main = async () => {
-  if(argv.h) {
-    instructions();
-  } else {
-    let file = {};
-    if(argv.file) {
-      file = await transposeFile(getFile(argv.file));
-    } else {
-      checkArgs();
-    }
+  try {
 
-    const options = getArgs(argv, file);
-    //get deployment configs
-    const deploys = await oc.getDeploys(options.token, options.dev);
-    const prodDeploys = await oc.getDeploys(options.token, options.prod);
-    const testDeploys = await oc.getDeploys(options.token, options.test);
+    if(argv.h) {
+      instructions();
+    } else {
+      let file = {};
+      if(argv.file) {
+        file = await transposeFile(getFile(argv.file));
+      } else {
+        checkArgs();
+      }
   
-    const {data} = deploys;
-    // filter out all non devhub deployment configs
-    const filtered = getPrNumFromDeployConfig(data.items, options.app);
-    // exclude prod and test prs from being removed
-    const excludesTest = getPrNumFromDeployConfig(testDeploys.data.items, options.app)
-    const excludesProd = getPrNumFromDeployConfig(prodDeploys.data.items, options.app)
-    // get open prs
-    const openPrs = await github.getPrs(options.repo, options.owner);
-    const openPrNums = openPrs.data.map(pr => pr.number).concat(excludesTest).concat(excludesProd);
-    const afterGithubPR = filtered.filter(number => {
-      return !openPrNums.includes(number);
-    });
-    console.log(afterGithubPR.join('\n'));
+      const options = getArgs(argv, file);
+      //get deployment configs
+      const deploys = await oc.getDeploys(options.token, options.dev);
+      const prodDeploys = await oc.getDeploys(options.token, options.prod);
+      const testDeploys = await oc.getDeploys(options.token, options.test);
+    
+      const {data} = deploys;
+      // filter out all non devhub deployment configs
+      const filtered = getPrNumFromDeployConfig(data.items, options.app);
+      // exclude prod and test prs from being removed
+      const excludesTest = getPrNumFromDeployConfig(testDeploys.data.items, options.app)
+      const excludesProd = getPrNumFromDeployConfig(prodDeploys.data.items, options.app)
+      // get open prs
+      const openPrs = await github.getPrs(options.repo, options.owner);
+      const openPrNums = openPrs.data.map(pr => pr.number).concat(excludesTest).concat(excludesProd);
+      const afterGithubPR = filtered.filter(number => {
+        return !openPrNums.includes(number);
+      });
+      console.log(afterGithubPR.join('\n'));
+    }
+  } catch(e) {
+    console.error(e);
+    process.exit(1)
   }
 }
 
