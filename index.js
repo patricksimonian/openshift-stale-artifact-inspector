@@ -46,6 +46,20 @@ const getArgs = (cmdArgs, file) => {
   return { ...envOptions, ...cmdArgs, ...file};
 };
 
+/**
+ * logs out the results of the process
+ * @param {Array} prsCleaned 
+ * @param {Array} prsFailed 
+ */
+const results = (prsCleaned, prsFailed) => console.log(chalk`
+========== RESULTS ==========
+{green.bold # PRs Cleaned:} {bold ${prsCleaned.length}}
+{red.bold # PRs Failed:} {bold ${prsFailed.length}}
+
+{red.bold PRs Failed:}
+${prsFailed.join()}
+`);
+
 const instructions = () => {
   const text = chalk`
     {bold options:}
@@ -62,6 +76,8 @@ const instructions = () => {
     {cyan example usage:}
 
     {yellow oc-stale-artifacts --app=foo --dev=foo-dev --test=foo-test --prod=foo-prod --repo=bar --owner=baz --token=mysecret}
+
+    {grey alternatively you may have your configuration as a json file and reference it with } {green --file=path-to-file}
   `;
   console.log(text);
 }
@@ -90,7 +106,8 @@ const main = async () => {
       } else {
         checkArgs();
       }
-  
+      const prsFailed = [];
+      const prsCleaned = [];
       const options = getArgs(argv, file);
       //get deployment configs
       const deploys = await oc.getDeploys(options.token, options.dev);
@@ -126,18 +143,26 @@ const main = async () => {
 
        const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
        const gen = cleanNamespaces(bar, namespaces, afterGithubPR, options.app, options.dryrun);
-       let value;
+
        while(!bar.complete) {
          let err;
          try {
            const value = gen.next().value
            const { stdout, stderr } = await value;
+           if(!options.dryrun) {
+             bar.interrupt(stdout);
+             bar.interrupt(stderr);
+           }
+           prsCleaned.push(afterGithubPR[bar.curr]);
            bar.tick();
           } catch(e) {
+            prsFailed.push(afterGithubPR[bar.curr]);
+            bar.interrupt(e.message);
             bar.tick();
           }
         } 
-        console.log('\ncomplete!');
+        console.log();
+        results(prsCleaned, prsFailed);
       }
       process.exit(0);
   } catch(e) {

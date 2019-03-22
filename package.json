@@ -14,7 +14,7 @@
     "url": "https://github.com/patricksimonian/openshift-stale-artifact-inspector"
   },
   "bin": {
-    "oc-stale-artifacts": "index.js"
+    "oc-clean-stale-artifacts": "index.js"
   },
   "keywords": [],
   "author": "",

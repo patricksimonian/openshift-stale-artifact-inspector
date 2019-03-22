@@ -48,8 +48,8 @@ for NAMESPACE in $NAMESPACES; do
   done < <(oc -n $NAMESPACE get dc -l "$SELECTOR" -o json | jq -cMr '.items[].spec.triggers[] | select(.type == "ImageChange") | .imageChangeParams.from.name' | sort | uniq)
 
   set -x
-  oc -n $NAMESPACE delete all -l "$SELECTOR" || true
-  oc -n $NAMESPACE delete 'PersistentVolumeClaim,Secret,ConfigMap,RoleBinding' -l "$SELECTOR" || true
+  oc -n $NAMESPACE delete all -l "$SELECTOR"
+  oc -n $NAMESPACE delete 'PersistentVolumeClaim,Secret,ConfigMap,RoleBinding' -l "$SELECTOR"
   { set +x; } 2>/dev/null
 done
 
