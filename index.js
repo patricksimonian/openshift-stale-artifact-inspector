@@ -71,13 +71,13 @@ const instructions = () => {
     {green --repo=[github repo]} {grey the repo that is tied to your openshift ocp pipeline}
     {green --owner=[github owner]} {grey the owner of the repo}
     {green --token=[oc auth token]} {grey the openshift cli authentication token}
-    {green --dryrun {grey displays what prs would have been cleaned}
+    {green --dryrun} {grey displays what prs would have been cleaned}
 
     {cyan example usage:}
 
     {yellow oc-stale-artifacts --app=foo --dev=foo-dev --test=foo-test --prod=foo-prod --repo=bar --owner=baz --token=mysecret}
 
-    {grey alternatively you may have your configuration as a json file and reference it with } {green --file=path-to-file}
+    {white alternatively you may have your configuration as a json file and reference it with } {green --file=path-to-file}
   `;
   console.log(text);
 }
