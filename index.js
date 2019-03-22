@@ -2,9 +2,10 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-const progressBar = require('progress');
-const oc = require('./oc');
-const github = require('./github');
+const ProgressBar = require('progress');
+const oc = require('./lib/oc');
+const github = require('./lib/github');
+const { cleanNamespaces } = require('./lib/clean');
 const argv = require('minimist')(process.argv.slice(2));
 
 require('dotenv').config();
@@ -17,6 +18,7 @@ const checkArgs = () => {
     prod: true,
     repo: true,
     owner: true,
+    dryrun: false,
   }
   // if there is a file argument we don't check other args
   if(!argv.file) {
@@ -55,6 +57,7 @@ const instructions = () => {
     {green --repo=[github repo]} {grey the repo that is tied to your openshift ocp pipeline}
     {green --owner=[github owner]} {grey the owner of the repo}
     {green --token=[oc auth token]} {grey the openshift cli authentication token}
+    {green --dryrun {grey displays what prs would have been cleaned}
 
     {cyan example usage:}
 
@@ -93,7 +96,10 @@ const main = async () => {
       const deploys = await oc.getDeploys(options.token, options.dev);
       const prodDeploys = await oc.getDeploys(options.token, options.prod);
       const testDeploys = await oc.getDeploys(options.token, options.test);
-    
+      
+      // get namespaces joined for clean script
+      const namespaces = [options.dev, options.test, options.prod].join();
+
       const {data} = deploys;
       // filter out all non devhub deployment configs
       const filtered = getPrNumFromDeployConfig(data.items, options.app);
@@ -106,8 +112,34 @@ const main = async () => {
       const afterGithubPR = filtered.filter(number => {
         return !openPrNums.includes(number);
       });
-      console.log(afterGithubPR.join('\n'));
-    }
+
+      if(afterGithubPR.length === 0) {
+        console.log('no stale pull requests found. exiting!');
+        process.exit(0);
+      }
+
+      const barOpts = {
+         width: 20,
+         total: afterGithubPR.length,
+         clear: true
+       };
+
+       const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
+       const gen = cleanNamespaces(bar, namespaces, afterGithubPR, options.app, options.dryrun);
+       let value;
+       while(!bar.complete) {
+         let err;
+         try {
+           const value = gen.next().value
+           const { stdout, stderr } = await value;
+           bar.tick();
+          } catch(e) {
+            bar.tick();
+          }
+        } 
+        console.log('\ncomplete!');
+      }
+      process.exit(0);
   } catch(e) {
     console.error(e);
     process.exit(1)

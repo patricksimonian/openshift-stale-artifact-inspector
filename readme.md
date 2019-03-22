@@ -9,6 +9,9 @@ in which the development namespace gets littered with artifacts that eat resourc
 
 How to get started
 > requires node js 10
+> requires jq `brew install jq` in mac osx
+> requires oc cli
+
 1. install packages `npm install`
 2. fill in your environment variables `cp .env-example .env` if you want to persist an authentication token (you don't have to do this step)
 3. for app instructions run `npm start -- -h`
@@ -39,4 +42,4 @@ This list of numbers are all PR Numbers that are stale within your Openshift __D
 
 With this you can pipe the results into other functions for automated cleanups. A great way to do this is by using xargs.
 
-`npm start -- --file=./config.json | xargs -I {} mycleanupscript pr={}`
+`npm start -- --file=./config.json | xargs -I {} mycleanupscript --namespaces=devhub-tools,devhub-dev --app=devhub --pr={}`
