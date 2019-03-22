@@ -5,18 +5,18 @@
 This project was made so that I could quickly interface with openshift cli and github to clean up open shift artifacts that were generated from the OCP-CD/CI Pipeline. There are many situations
 in which the development namespace gets littered with artifacts that eat resources. 
 
-> AGAIN DISCLAIMER THIS IS ONLY FOR THE DEVHUB-DEV OPENSHIFT PROJECT
+## How to get started
 
-How to get started
-> requires node js 10
-1. install packages `npm install`
-2. fill in your environment variables `cp .env-example .env` if you want to persist an authentication token (you don't have to do this step)
-3. for app instructions run `npm start -- -h`
-4. To run app `npm start -- --app=[app-name] --dev=[dev namespace] --test=[test namespace] --prod=[prod namespace] --repo=[repo name] --owner=[owner name]
+### Prerequisites
 
-Alternatively you may store these credentials in a `json` file and call
-`npm start -- --file=[path to json file]`
+- NodeJS 10
+- jq v1.5 `brew install jq` in mac osx `sudo apt-get update sudo apt-get install jq` in linux
+- oc cli v3.9 (open shift cli)
 
+### As a CLI
+1. `npm install git+https://git@github.com/patricksimonian/openshift-stale-artifact-inspector.git
+2.  run with cmd `oc-clean-stale-artifacts -h`
+3.  you can run the tool with inline arguments or a json configuration file
 ```json
 // config.json
 {
@@ -31,7 +31,7 @@ Alternatively you may store these credentials in a `json` file and call
 ```
 > ENSURE TO NOT ADD YOUR CONFIG FILE AS APART OF THE REPO HISTORY IF YOU ARE INCLUDING THE TOKEN
 
-`npm start -- --file=./config.json`
+`oc-clean-stale-artifacts --file=./config.json`
 
 ## I just got a list of numbers so what?
 
@@ -39,4 +39,4 @@ This list of numbers are all PR Numbers that are stale within your Openshift __D
 
 With this you can pipe the results into other functions for automated cleanups. A great way to do this is by using xargs.
 
-`npm start -- --file=./config.json | xargs -I {} mycleanupscript pr={}`
+`npm start -- --file=./config.json | xargs -I {} mycleanupscript --namespaces=devhub-tools,devhub-dev --app=devhub --pr={}`

@@ -1,11 +1,20 @@
 {
-  "name": "stale-oc-artifacts",
+  "name": "openshift-stale-artifact-inspector",
   "version": "1.0.0",
   "description": "",
-  "main": "prFilter.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
+  },
+  "maintainers": [
+    "patricksimonian"
+  ],
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/patricksimonian/openshift-stale-artifact-inspector"
+  },
+  "bin": {
+    "oc-clean-stale-artifacts": "index.js"
   },
   "keywords": [],
   "author": "",
@@ -13,8 +22,10 @@
   "dependencies": {
     "@octokit/rest": "^16.18.1",
     "axios": "^0.18.0",
+    "chalk": "^2.4.2",
     "dotenv": "^7.0.0",
     "minimist": "^1.2.0",
-    "openshift-client": "^3.10.8"
+    "openshift-client": "^3.10.8",
+    "progress": "^2.0.3"
   }
 }
