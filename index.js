@@ -18,7 +18,6 @@ const checkArgs = () => {
     prod: true,
     repo: true,
     owner: true,
-    dryrun: false,
   }
   // if there is a file argument we don't check other args
   if(!argv.file) {
@@ -43,7 +42,11 @@ const getArgs = (cmdArgs, file) => {
   const envOptions = {
     token: process.env.OC_TOKEN,
   }
-  return { ...envOptions, ...cmdArgs, ...file};
+  const defaults = {
+    dryrun: false,
+  }
+
+  return {...defaults, ...envOptions, ...cmdArgs, ...file};
 };
 
 /**
@@ -75,7 +78,7 @@ const instructions = () => {
 
     {cyan example usage:}
 
-    {yellow oc-stale-artifacts --app=foo --dev=foo-dev --test=foo-test --prod=foo-prod --repo=bar --owner=baz --token=mysecret}
+    {yellow oc-clean-stale-artifacts --app=foo --dev=foo-dev --test=foo-test --prod=foo-prod --repo=bar --owner=baz --token=mysecret}
 
     {white alternatively you may have your configuration as a json file and reference it with } {green --file=path-to-file}
   `;
