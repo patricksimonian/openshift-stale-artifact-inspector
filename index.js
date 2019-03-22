@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
+const chalk = require('chalk');
+const progressBar = require('progress');
 const oc = require('./oc');
 const github = require('./github');
 const argv = require('minimist')(process.argv.slice(2));
@@ -43,16 +45,20 @@ const getArgs = (cmdArgs, file) => {
 };
 
 const instructions = () => {
-  const text = `
-    options:
-    app: --app=[app] this should be the value as found from your openshift deployconfig
-         it should be found within config.metadata.labels.app
-    dev: --dev=[dev name space] the name of your development openshift namespace
-    test: --test=[test name space] the name of your test openshift namespace
-    prod: --prod=[prod name space] the name of your prod openshift namespace
-    repo: --repo=[github repo] the repo that is tied to your openshift ocp pipeline
-    owner: --owner=[github owner] the owner of the repo
-    token: --token=[oc auth token] the openshift cli authentication token
+  const text = chalk`
+    {bold options:}
+    {green --app=[app]} {grey this should be the value as found from your openshift deployconfig
+                it should be found within config.metadata.labels.app}
+    {green --dev=[dev name space]} {grey the name of your development openshift namespace}
+    {green --test=[test name space]} {grey the name of your test openshift namespace}
+    {green --prod=[prod name space]} {grey the name of your prod openshift namespace}
+    {green --repo=[github repo]} {grey the repo that is tied to your openshift ocp pipeline}
+    {green --owner=[github owner]} {grey the owner of the repo}
+    {green --token=[oc auth token]} {grey the openshift cli authentication token}
+
+    {cyan example usage:}
+
+    {yellow oc-stale-artifacts --app=foo --dev=foo-dev --test=foo-test --prod=foo-prod --repo=bar --owner=baz --token=mysecret}
   `;
   console.log(text);
 }
