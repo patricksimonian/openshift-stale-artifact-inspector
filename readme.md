@@ -14,7 +14,7 @@ in which the development namespace gets littered with artifacts that eat resourc
 - oc cli v3.9 (open shift cli)
 
 ### As a CLI
-1. `npm install git+https://git@github.com/patricksimonian/openshift-stale-artifact-inspector.git
+1. `npm install -g git+https://git@github.com/patricksimonian/openshift-stale-artifact-inspector.git`
 2.  run with cmd `oc-clean-stale-artifacts -h`
 3.  you can run the tool with inline arguments or a json configuration file
 ```json

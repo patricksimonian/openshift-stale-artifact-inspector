@@ -18,7 +18,6 @@ const checkArgs = () => {
     prod: true,
     repo: true,
     owner: true,
-    prs: false,
   }
   // if there is a file argument we don't check other args
   if(!argv.file) {
@@ -148,7 +147,7 @@ const instructions = () => {
 }
 
 const getFile = async filepath => {
-  const resolvedPath = path.resolve(__dirname, filepath);
+  const resolvedPath = path.resolve(process.cwd(), filepath);
   return await new Promise((resolve, reject) => {
     fs.readFile(resolvedPath, (err, data) => {
       if (err) reject(err)
