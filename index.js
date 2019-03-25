@@ -18,6 +18,7 @@ const checkArgs = () => {
     prod: true,
     repo: true,
     owner: true,
+    prs: false,
   }
   // if there is a file argument we don't check other args
   if(!argv.file) {
@@ -27,6 +28,26 @@ const checkArgs = () => {
       }
     });
   }
+}
+
+/**
+ * gets the pr list from a cmd line arg
+ * @param {String} prs '123,124,125'
+ * @returns {Array} prs as numbers
+ */
+const getPrsFromArg = prs => {
+  // cast pr to string, minimist autocasts things like --pr=481 to a number, this is to normalize
+  // --pr=481,482 being cast to a string
+  prs = prs + '';
+
+  const rawPrs = prs.split(',');
+  // assert rawPrs are numbers by casting to a number
+  prsAsNums = rawPrs.map(pr => (pr / 1));
+  if(prsAsNums.includes(NaN)) {
+    throw new Error(`-pr= argument must be a comma seperated list, received ${prs}`);
+  }
+
+  return prsAsNums;
 }
 
 const getPrNumFromDeployConfig = (configs, app) => configs.filter(item => {
@@ -50,6 +71,45 @@ const getArgs = (cmdArgs, file) => {
 };
 
 /**
+ * finds all stale prs for a oc project by comparing deploy configs
+ * against prs in github repo
+ * @param {Object} options
+ * @param {String} options.dev the openshift dev project namespace
+ * @param {String} options.test the openshift test project namespace
+ * @param {String} options.prod the openshift prod project namespace
+ * @param {String} options.token the openshift access token
+ * @param {String} options.app the openshift app label (specific to OCP-CD pipeline)
+ * @returns {Array} list of prs
+ */
+const getStalePrs = async options => {
+  //get deployment configs
+  const deploys = await oc.getDeploys(options.token, options.dev);
+  const prodDeploys = await oc.getDeploys(options.token, options.prod);
+  const testDeploys = await oc.getDeploys(options.token, options.test);
+  
+
+  const {data} = deploys;
+  // filter out all non devhub deployment configs
+  const filtered = getPrNumFromDeployConfig(data.items, options.app);
+  // exclude prod and test prs from being removed
+  const excludesTest = getPrNumFromDeployConfig(testDeploys.data.items, options.app)
+  const excludesProd = getPrNumFromDeployConfig(prodDeploys.data.items, options.app)
+  // get open prs
+  const openPrs = await github.getPrs(options.repo, options.owner);
+  const openPrNums = openPrs.data.map(pr => pr.number).concat(excludesTest).concat(excludesProd);
+  const prsToClean = filtered.filter(number => {
+    return !openPrNums.includes(number);
+  });
+
+  if(prsToClean.length === 0) {
+    console.log('no stale pull requests found. exiting!');
+    process.exit(0);
+  }
+
+  return prsToClean;
+}
+
+/**
  * logs out the results of the process
  * @param {Array} prsCleaned 
  * @param {Array} prsFailed 
@@ -66,15 +126,17 @@ ${prsFailed.join()}
 const instructions = () => {
   const text = chalk`
     {bold options:}
-    {green --app=[app]} {grey this should be the value as found from your openshift deployconfig
+    {green --app=[app]} {blue this should be the value as found from your openshift deployconfig
                 it should be found within config.metadata.labels.app}
-    {green --dev=[dev name space]} {grey the name of your development openshift namespace}
-    {green --test=[test name space]} {grey the name of your test openshift namespace}
-    {green --prod=[prod name space]} {grey the name of your prod openshift namespace}
-    {green --repo=[github repo]} {grey the repo that is tied to your openshift ocp pipeline}
-    {green --owner=[github owner]} {grey the owner of the repo}
-    {green --token=[oc auth token]} {grey the openshift cli authentication token}
-    {green --dryrun} {grey displays what prs would have been cleaned}
+    {green --dev=[dev name space]} {blue the name of your development openshift namespace}
+    {green --test=[test name space]} {blue the name of your test openshift namespace}
+    {green --prod=[prod name space]} {blue the name of your prod openshift namespace}
+    {green --repo=[github repo]} {blue the repo that is tied to your openshift ocp pipeline}
+    {green --owner=[github owner]} {blue the owner of the repo}
+    {green --token=[oc auth token]} {blue the openshift cli authentication token}
+    {green --dryrun} {blue displays what prs would have been cleaned}
+    OR
+    {green --prs=[comma seperated list of prs]} {blue manually clean prs instead of looking for stale ones --prs=481,392,123}
 
     {cyan example usage:}
 
@@ -112,41 +174,25 @@ const main = async () => {
       const prsFailed = [];
       const prsCleaned = [];
       const options = getArgs(argv, file);
-      //get deployment configs
-      const deploys = await oc.getDeploys(options.token, options.dev);
-      const prodDeploys = await oc.getDeploys(options.token, options.prod);
-      const testDeploys = await oc.getDeploys(options.token, options.test);
-      
       // get namespaces joined for clean script
       const namespaces = [options.dev, options.test, options.prod].join();
+      let prsToClean = [];
 
-      const {data} = deploys;
-      // filter out all non devhub deployment configs
-      const filtered = getPrNumFromDeployConfig(data.items, options.app);
-      // exclude prod and test prs from being removed
-      const excludesTest = getPrNumFromDeployConfig(testDeploys.data.items, options.app)
-      const excludesProd = getPrNumFromDeployConfig(prodDeploys.data.items, options.app)
-      // get open prs
-      const openPrs = await github.getPrs(options.repo, options.owner);
-      const openPrNums = openPrs.data.map(pr => pr.number).concat(excludesTest).concat(excludesProd);
-      const afterGithubPR = filtered.filter(number => {
-        return !openPrNums.includes(number);
-      });
-
-      if(afterGithubPR.length === 0) {
-        console.log('no stale pull requests found. exiting!');
-        process.exit(0);
+      if(options.prs) {
+        prsToClean = getPrsFromArg(options.prs);
+      } else {
+        prsToClean = await getStalePrs(options);
       }
-
+      
       const barOpts = {
          width: 20,
-         total: afterGithubPR.length,
+         total: prsToClean.length,
          clear: true
        };
 
        const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
-       const gen = cleanNamespaces(bar, namespaces, afterGithubPR, options.app, options.dryrun);
-
+       const gen = cleanNamespaces(bar, namespaces, prsToClean, options.app, options.dryrun);
+       console.log()
        while(!bar.complete) {
          let err;
          try {
@@ -156,10 +202,10 @@ const main = async () => {
              bar.interrupt(stdout);
              bar.interrupt(stderr);
            }
-           prsCleaned.push(afterGithubPR[bar.curr]);
+           prsCleaned.push(prsToClean[bar.curr]);
            bar.tick();
           } catch(e) {
-            prsFailed.push(afterGithubPR[bar.curr]);
+            prsFailed.push(prsToClean[bar.curr]);
             bar.interrupt(e.message);
             bar.tick();
           }
