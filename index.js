@@ -126,15 +126,17 @@ ${prsFailed.join()}
 const instructions = () => {
   const text = chalk`
     {bold options:}
-    {green --app=[app]} {grey this should be the value as found from your openshift deployconfig
+    {green --app=[app]} {blue this should be the value as found from your openshift deployconfig
                 it should be found within config.metadata.labels.app}
-    {green --dev=[dev name space]} {grey the name of your development openshift namespace}
-    {green --test=[test name space]} {grey the name of your test openshift namespace}
-    {green --prod=[prod name space]} {grey the name of your prod openshift namespace}
-    {green --repo=[github repo]} {grey the repo that is tied to your openshift ocp pipeline}
-    {green --owner=[github owner]} {grey the owner of the repo}
-    {green --token=[oc auth token]} {grey the openshift cli authentication token}
-    {green --dryrun} {grey displays what prs would have been cleaned}
+    {green --dev=[dev name space]} {blue the name of your development openshift namespace}
+    {green --test=[test name space]} {blue the name of your test openshift namespace}
+    {green --prod=[prod name space]} {blue the name of your prod openshift namespace}
+    {green --repo=[github repo]} {blue the repo that is tied to your openshift ocp pipeline}
+    {green --owner=[github owner]} {blue the owner of the repo}
+    {green --token=[oc auth token]} {blue the openshift cli authentication token}
+    {green --dryrun} {blue displays what prs would have been cleaned}
+    OR
+    {green --prs=[comma seperated list of prs]} {blue manually clean prs instead of looking for stale ones --prs=481,392,123}
 
     {cyan example usage:}
 
@@ -190,7 +192,7 @@ const main = async () => {
 
        const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
        const gen = cleanNamespaces(bar, namespaces, prsToClean, options.app, options.dryrun);
-
+       console.log()
        while(!bar.complete) {
          let err;
          try {
