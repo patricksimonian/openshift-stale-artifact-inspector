@@ -33,10 +33,14 @@ in which the development namespace gets littered with artifacts that eat resourc
 
 `oc-clean-stale-artifacts --file=./config.json`
 
-## I just got a list of numbers so what?
+#### Dry runs
 
-This list of numbers are all PR Numbers that are stale within your Openshift __Dev__ and __Tools__ namespaces.
+Want to see what PRS would have been cleaned without cleaning them?
 
-With this you can pipe the results into other functions for automated cleanups. A great way to do this is by using xargs.
+`oc-clean-stale-artifacts [...your config] --dryrun`
 
-`npm start -- --file=./config.json | xargs -I {} mycleanupscript --namespaces=devhub-tools,devhub-dev --app=devhub --pr={}`
+#### Manual PR Cleaning
+
+Want to clean PRS manually? Pass in a `comma-seperated-list` of prs.
+
+`oc-clean-stale-artifacts [...your config] --prs=123,124,125`
