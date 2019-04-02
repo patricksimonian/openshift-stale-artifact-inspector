@@ -1,10 +1,11 @@
 {
   "name": "openshift-stale-artifact-inspector",
-  "version": "1.1.1",
+  "version": "1.3.0-0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "prepare": "eslint . --fix"
   },
   "maintainers": [
     "patricksimonian"
@@ -24,8 +25,28 @@
     "axios": "^0.18.0",
     "chalk": "^2.4.2",
     "dotenv": "^7.0.0",
+    "figlet": "^1.2.1",
     "minimist": "^1.2.0",
     "openshift-client": "^3.10.8",
     "progress": "^2.0.3"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
+    "eslint-plugin-prettier": "^3.0.1",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.5",
+    "prettier": "^1.16.4"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   }
 }

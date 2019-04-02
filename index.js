@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const figlet = require('figlet');
 const path = require('path');
 const chalk = require('chalk');
 const ProgressBar = require('progress');
@@ -18,16 +19,18 @@ const checkArgs = () => {
     prod: true,
     repo: true,
     owner: true,
-  }
+  };
   // if there is a file argument we don't check other args
-  if(!argv.file) {
+  if (!argv.file) {
     Object.keys(defaults).forEach(flag => {
-      if(!Object.prototype.hasOwnProperty.call(argv, flag)) {
-        throw new Error(`flag: ${flag} is missing, run program with -h for instructions`);
+      if (!Object.prototype.hasOwnProperty.call(argv, flag)) {
+        throw new Error(
+          `flag: ${flag} is missing, run program with -h for instructions`
+        );
       }
     });
   }
-}
+};
 
 /**
  * gets the pr list from a cmd line arg
@@ -41,32 +44,37 @@ const getPrsFromArg = prs => {
 
   const rawPrs = prs.split(',');
   // assert rawPrs are numbers by casting to a number
-  prsAsNums = rawPrs.map(pr => (pr / 1));
-  if(prsAsNums.includes(NaN)) {
-    throw new Error(`-pr= argument must be a comma seperated list, received ${prs}`);
+  prsAsNums = rawPrs.map(pr => pr / 1);
+  if (prsAsNums.includes(NaN)) {
+    throw new Error(
+      `-pr= argument must be a comma seperated list, received ${prs}`
+    );
   }
 
   return prsAsNums;
-}
+};
 
-const getPrNumFromDeployConfig = (configs, app) => configs.filter(item => {
-  try {
-    const deployment = (item.metadata.labels['app']);
-    return deployment.indexOf(app) > -1
-  } catch(e) {
-    return false;
-  }
-}).map(item => item.metadata.labels['env-id'].replace('pr-', '') / 1);
+const getPrNumFromDeployConfig = (configs, app) =>
+  configs
+    .filter(item => {
+      try {
+        const deployment = item.metadata.labels['app'];
+        return deployment.indexOf(app) > -1;
+      } catch (e) {
+        return false;
+      }
+    })
+    .map(item => item.metadata.labels['env-id'].replace('pr-', '') / 1);
 
 const getArgs = (cmdArgs, file) => {
   const envOptions = {
     token: process.env.OC_TOKEN,
-  }
+  };
   const defaults = {
     dryrun: false,
-  }
+  };
 
-  return {...defaults, ...envOptions, ...cmdArgs, ...file};
+  return { ...defaults, ...envOptions, ...cmdArgs, ...file };
 };
 
 /**
@@ -85,35 +93,44 @@ const getStalePrs = async options => {
   const deploys = await oc.getDeploys(options.token, options.dev);
   const prodDeploys = await oc.getDeploys(options.token, options.prod);
   const testDeploys = await oc.getDeploys(options.token, options.test);
-  
 
-  const {data} = deploys;
+  const { data } = deploys;
   // filter out all non devhub deployment configs
   const filtered = getPrNumFromDeployConfig(data.items, options.app);
   // exclude prod and test prs from being removed
-  const excludesTest = getPrNumFromDeployConfig(testDeploys.data.items, options.app)
-  const excludesProd = getPrNumFromDeployConfig(prodDeploys.data.items, options.app)
+  const excludesTest = getPrNumFromDeployConfig(
+    testDeploys.data.items,
+    options.app
+  );
+  const excludesProd = getPrNumFromDeployConfig(
+    prodDeploys.data.items,
+    options.app
+  );
   // get open prs
   const openPrs = await github.getPrs(options.repo, options.owner);
-  const openPrNums = openPrs.data.map(pr => pr.number).concat(excludesTest).concat(excludesProd);
+  const openPrNums = openPrs.data
+    .map(pr => pr.number)
+    .concat(excludesTest)
+    .concat(excludesProd);
   const prsToClean = filtered.filter(number => {
     return !openPrNums.includes(number);
   });
 
-  if(prsToClean.length === 0) {
+  if (prsToClean.length === 0) {
     console.log('no stale pull requests found. exiting!');
     process.exit(0);
   }
 
   return prsToClean;
-}
+};
 
 /**
  * logs out the results of the process
- * @param {Array} prsCleaned 
- * @param {Array} prsFailed 
+ * @param {Array} prsCleaned
+ * @param {Array} prsFailed
  */
-const results = (prsCleaned, prsFailed) => console.log(chalk`
+const results = (prsCleaned, prsFailed) =>
+  console.log(chalk`
 ========== RESULTS ==========
 {green.bold # PRs Cleaned:} {bold ${prsCleaned.length}}
 {red.bold # PRs Failed:} {bold ${prsFailed.length}}
@@ -144,14 +161,14 @@ const instructions = () => {
     {white alternatively you may have your configuration as a json file and reference it with } {green --file=path-to-file}
   `;
   console.log(text);
-}
+};
 
 const getFile = async filepath => {
   const resolvedPath = path.resolve(process.cwd(), filepath);
   return await new Promise((resolve, reject) => {
     fs.readFile(resolvedPath, (err, data) => {
-      if (err) reject(err)
-      else resolve(data)
+      if (err) reject(err);
+      else resolve(data);
     });
   });
 };
@@ -160,16 +177,31 @@ const transposeFile = async fileData => JSON.parse(await fileData);
 
 const main = async () => {
   try {
-
-    if(argv.h) {
+    if (argv.h) {
       instructions();
     } else {
       let file = {};
-      if(argv.file) {
+      if (argv.file) {
         file = await transposeFile(getFile(argv.file));
       } else {
         checkArgs();
       }
+
+      figlet.text(
+        'Government \nof\n British\n Columbia',
+        {
+          horizontalLayout: 'default',
+          verticalLayout: 'default',
+        },
+        function(err, data) {
+          if (err) {
+            return;
+          }
+          console.log(data);
+          console.log('Authored by Patrick Simonian');
+        }
+      );
+
       const prsFailed = [];
       const prsCleaned = [];
       const options = getArgs(argv, file);
@@ -177,46 +209,52 @@ const main = async () => {
       const namespaces = [options.dev, options.test, options.prod].join();
       let prsToClean = [];
 
-      if(options.prs) {
+      if (options.prs) {
         prsToClean = getPrsFromArg(options.prs);
       } else {
         prsToClean = await getStalePrs(options);
       }
-      
-      const barOpts = {
-         width: 20,
-         total: prsToClean.length,
-         clear: true
-       };
 
-       const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
-       const gen = cleanNamespaces(bar, namespaces, prsToClean, options.app, options.dryrun);
-       console.log()
-       while(!bar.complete) {
-         let err;
-         try {
-           const value = gen.next().value
-           const { stdout, stderr } = await value;
-           if(!options.dryrun) {
-             bar.interrupt(stdout);
-             bar.interrupt(stderr);
-           }
-           prsCleaned.push(prsToClean[bar.curr]);
-           bar.tick();
-          } catch(e) {
-            prsFailed.push(prsToClean[bar.curr]);
-            bar.interrupt(e.message);
-            bar.tick();
+      const barOpts = {
+        width: 20,
+        total: prsToClean.length,
+        clear: true,
+      };
+
+      const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
+      const gen = cleanNamespaces(
+        bar,
+        namespaces,
+        prsToClean,
+        options.app,
+        options.dryrun
+      );
+      console.log();
+      while (!bar.complete) {
+        let err;
+        try {
+          const value = gen.next().value;
+          const { stdout, stderr } = await value;
+          if (!options.dryrun) {
+            bar.interrupt(stdout);
+            bar.interrupt(stderr);
           }
-        } 
-        console.log();
-        results(prsCleaned, prsFailed);
+          prsCleaned.push(prsToClean[bar.curr]);
+          bar.tick();
+        } catch (e) {
+          prsFailed.push(prsToClean[bar.curr]);
+          bar.interrupt(e.message);
+          bar.tick();
+        }
       }
-      process.exit(0);
-  } catch(e) {
+      console.log();
+      results(prsCleaned, prsFailed);
+    }
+    process.exit(0);
+  } catch (e) {
     console.error(e);
-    process.exit(1)
+    process.exit(1);
   }
-}
+};
 
 main();
