@@ -188,9 +188,8 @@ const main = async () => {
       }
 
       figlet.text(
-        'Government of British Columbia',
+        'Government \nof\n British\n Columbia',
         {
-          font: 'Ghost',
           horizontalLayout: 'default',
           verticalLayout: 'default',
         },
