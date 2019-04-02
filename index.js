@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const figlet = require('figlet');
 const path = require('path');
 const chalk = require('chalk');
 const ProgressBar = require('progress');
@@ -170,6 +171,19 @@ const main = async () => {
       } else {
         checkArgs();
       }
+
+      figlet.text('Government of British Columbia', {
+        font: 'Ghost',
+        horizontalLayout: 'default',
+        verticalLayout: 'default'
+      }, function(err, data) {
+          if (err) {
+            return;
+          }
+          console.log(data);
+          console.log('Authored by Patrick Simonian')
+      });
+
       const prsFailed = [];
       const prsCleaned = [];
       const options = getArgs(argv, file);

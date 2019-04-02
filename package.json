@@ -24,6 +24,7 @@
     "axios": "^0.18.0",
     "chalk": "^2.4.2",
     "dotenv": "^7.0.0",
+    "figlet": "^1.2.1",
     "minimist": "^1.2.0",
     "openshift-client": "^3.10.8",
     "progress": "^2.0.3"
