@@ -24,6 +24,7 @@
     "@octokit/rest": "^16.18.1",
     "axios": "^0.18.0",
     "chalk": "^2.4.2",
+    "cli-spinner": "^0.2.10",
     "dotenv": "^7.0.0",
     "figlet": "^1.2.1",
     "minimist": "^1.2.0",

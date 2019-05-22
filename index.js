@@ -8,8 +8,14 @@ const oc = require('./lib/oc');
 const github = require('./lib/github');
 const { cleanNamespaces } = require('./lib/clean');
 const argv = require('minimist')(process.argv.slice(2));
+var Spinner = require('cli-spinner').Spinner;
 
 require('dotenv').config();
+
+/**
+ * returns package.json version
+ */
+const getVersion = () => require('./package.json').version;
 
 const checkArgs = () => {
   const defaults = {
@@ -106,8 +112,10 @@ const getStalePrs = async options => {
     prodDeploys.data.items,
     options.app
   );
-  // get open prs
-  const openPrs = await github.getPrs(options.repo, options.owner);
+
+  // get open prs from repo
+  const instance = github(options.ghToken);
+  const openPrs = await instance.getPrs(options.repo, options.owner);
   const openPrNums = openPrs.data
     .map(pr => pr.number)
     .concat(excludesTest)
@@ -139,8 +147,9 @@ const results = (prsCleaned, prsFailed) =>
 ${prsFailed.join()}
 `);
 
-const instructions = () => {
+const instructions = async () => {
   const text = chalk`
+    version ${getVersion()}
     {bold options:}
     {green --app=[app]} {blue this should be the value as found from your openshift deployconfig
                 it should be found within config.metadata.labels.app}
@@ -150,6 +159,7 @@ const instructions = () => {
     {green --repo=[github repo]} {blue the repo that is tied to your openshift ocp pipeline}
     {green --owner=[github owner]} {blue the owner of the repo}
     {green --token=[oc auth token]} {blue the openshift cli authentication token}
+    {green --ghToken=[github access token]} {blue this is optional but maybe help with api limit requests if running the tool repeatedly}
     {green --dryrun} {blue displays what prs would have been cleaned}
     OR
     {green --prs=[comma seperated list of prs]} {blue manually clean prs instead of looking for stale ones --prs=481,392,123}
@@ -175,6 +185,30 @@ const getFile = async filepath => {
 
 const transposeFile = async fileData => JSON.parse(await fileData);
 
+/**
+ * prints out the gov banner for this tool
+ * @returns {void}
+ */
+const banner = () =>
+  figlet.text(
+    'Government \nof\n British\n Columbia',
+    {
+      horizontalLayout: 'default',
+      verticalLayout: 'default',
+    },
+    function(err, data) {
+      const spinner = new Spinner('processing.. %s');
+      if (err) {
+        return;
+      }
+      console.log(data);
+      console.log('Authored by Patrick Simonian');
+      console.log(`Version: ${getVersion()}`);
+      spinner.setSpinnerString('|/-\\');
+      spinner.start();
+    }
+  );
+
 const main = async () => {
   try {
     if (argv.h) {
@@ -186,21 +220,6 @@ const main = async () => {
       } else {
         checkArgs();
       }
-
-      figlet.text(
-        'Government \nof\n British\n Columbia',
-        {
-          horizontalLayout: 'default',
-          verticalLayout: 'default',
-        },
-        function(err, data) {
-          if (err) {
-            return;
-          }
-          console.log(data);
-          console.log('Authored by Patrick Simonian');
-        }
-      );
 
       const prsFailed = [];
       const prsCleaned = [];
@@ -221,6 +240,8 @@ const main = async () => {
         clear: true,
       };
 
+      banner();
+
       const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
       const gen = cleanNamespaces(
         bar,
@@ -229,6 +250,7 @@ const main = async () => {
         options.app,
         options.dryrun
       );
+      // print a new line
       console.log();
       while (!bar.complete) {
         let err;
@@ -247,6 +269,7 @@ const main = async () => {
           bar.tick();
         }
       }
+      // print a new line
       console.log();
       results(prsCleaned, prsFailed);
     }
