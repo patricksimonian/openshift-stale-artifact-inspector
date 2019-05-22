@@ -38,14 +38,14 @@ for NAMESPACE in $NAMESPACES; do
     set -x
     oc -n $NAMESPACE tag "$tag" -d || true
     { set +x; } 2>/dev/null
-  done < <(oc -n $NAMESPACE get bc -l "$SELECTOR" -o json | jq -cMr '.items[].spec.output.to | select (. != null) | .name' | sort | uniq)
+  done < <(oc -n $NAMESPACE get buildconfigs -l "$SELECTOR" -o json | jq -cMr '.items[].spec.output.to | select (. != null) | .name' | sort | uniq)
   
   #Delete tags used by DeploymentConfig
   while read tag; do
     set -x
     oc -n $NAMESPACE tag "$tag" -d || true
     { set +x; } 2>/dev/null
-  done < <(oc -n $NAMESPACE get dc -l "$SELECTOR" -o json | jq -cMr '.items[].spec.triggers[] | select(.type == "ImageChange") | .imageChangeParams.from.name' | sort | uniq)
+  done < <(oc -n $NAMESPACE get deploymentconfigs -l "$SELECTOR" -o json | jq -cMr '.items[].spec.triggers[] | select(.type == "ImageChange") | .imageChangeParams.from.name' | sort | uniq)
 
   set -x
   oc -n $NAMESPACE delete all -l "$SELECTOR"
