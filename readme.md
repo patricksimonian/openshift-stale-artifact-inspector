@@ -11,10 +11,10 @@ in which the development namespace gets littered with artifacts that eat resourc
 
 - NodeJS 10
 - jq v1.5 `brew install jq` in mac osx `sudo apt-get update sudo apt-get install jq` in linux
-- oc cli v3.9 (open shift cli)
+- oc cli v3.11 (open shift cli)
 
 ### As a CLI
-1. `npm install -g git+https://git@github.com/patricksimonian/openshift-stale-artifact-inspector.git`
+1. `npm install -g openshift-stale-artifact-inspector`
 2.  run with cmd `oc-clean-stale-artifacts -h`
 3.  you can run the tool with inline arguments or a json configuration file
 ```json
