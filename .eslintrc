@@ -1,14 +1,17 @@
+
 {
   "parser": "babel-eslint",
   "env": {
-    "browser": true,
-    "es6": true
+    "es6": true,
+    "jest": true
   },
+
   "parserOptions": {
     "sourceType": "module"
   },
   "plugins": [ "prettier"],
   "rules": {
+    "no-unused-vars": ["error"],
     "prettier/prettier": ["error"],
     "linebreak-style": ["warn", "unix"],
     "semi": ["error", "always"],

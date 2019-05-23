@@ -30,9 +30,7 @@ const checkArgs = () => {
   if (!argv.file) {
     Object.keys(defaults).forEach(flag => {
       if (!Object.prototype.hasOwnProperty.call(argv, flag)) {
-        throw new Error(
-          `flag: ${flag} is missing, run program with -h for instructions`
-        );
+        throw new Error(`flag: ${flag} is missing, run program with -h for instructions`);
       }
     });
   }
@@ -52,9 +50,7 @@ const getPrsFromArg = prs => {
   // assert rawPrs are numbers by casting to a number
   prsAsNums = rawPrs.map(pr => pr / 1);
   if (prsAsNums.includes(NaN)) {
-    throw new Error(
-      `-pr= argument must be a comma seperated list, received ${prs}`
-    );
+    throw new Error(`-pr= argument must be a comma seperated list, received ${prs}`);
   }
 
   return prsAsNums;
@@ -104,14 +100,8 @@ const getStalePrs = async options => {
   // filter out all non devhub deployment configs
   const filtered = getPrNumFromDeployConfig(data.items, options.app);
   // exclude prod and test prs from being removed
-  const excludesTest = getPrNumFromDeployConfig(
-    testDeploys.data.items,
-    options.app
-  );
-  const excludesProd = getPrNumFromDeployConfig(
-    prodDeploys.data.items,
-    options.app
-  );
+  const excludesTest = getPrNumFromDeployConfig(testDeploys.data.items, options.app);
+  const excludesProd = getPrNumFromDeployConfig(prodDeploys.data.items, options.app);
 
   // get open prs from repo
   const instance = github(options.ghToken);
@@ -206,7 +196,7 @@ const banner = () =>
       console.log(`Version: ${getVersion()}`);
       spinner.setSpinnerString('|/-\\');
       spinner.start();
-    }
+    },
   );
 
 const main = async () => {
@@ -243,17 +233,10 @@ const main = async () => {
       banner();
 
       const bar = new ProgressBar('[:bar] :percent :etas', barOpts);
-      const gen = cleanNamespaces(
-        bar,
-        namespaces,
-        prsToClean,
-        options.app,
-        options.dryrun
-      );
+      const gen = cleanNamespaces(bar, namespaces, prsToClean, options.app, options.dryrun);
       // print a new line
       console.log();
       while (!bar.complete) {
-        let err;
         try {
           const value = gen.next().value;
           const { stdout, stderr } = await value;
