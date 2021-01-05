@@ -23,7 +23,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@octokit/rest": "^16.18.1",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "chalk": "^2.4.2",
     "cli-spinner": "^0.2.10",
     "dotenv": "^7.0.0",
